@@ -112,6 +112,7 @@
 </div>
 
 <script>
+    // Menggunakan API_URL database terpusat yang sinkron dengan admin.html
     const API_URL = "https://script.google.com/macros/s/AKfycby-caKYBBTqnEEt3az__d4HoymcVkomEDHIUHrFivmDhwsr0HzlE-TtPFVSmake_le2/exec";
 
     function togglePass() {
@@ -135,7 +136,7 @@
 
         Swal.fire({
             title: 'Verifikasi Kredensial...',
-            text: 'Harap tunggu sebentar, sedang mencocokkan data admin.',
+            text: 'Harap tunggu sebentar, sedang mencocokkan data .',
             allowOutsideClick: false,
             allowEscapeKey: false,
             showConfirmButton: false,
@@ -169,7 +170,8 @@
                     timer: 1500,
                     showConfirmButton: false
                 }).then(() => {
-                    window.location = 'admin.html';
+                    // DIUBAH: Mengalihkan ke admin.html (sesuai nama berkas dashboard di workspace Anda)
+                    window.location = 'admin-dashboard.html';
                 });
             } else {
                 Swal.fire({
@@ -182,6 +184,7 @@
         } catch (err) {
             loader.classList.add('hidden');
             loader.classList.remove('flex');
+            Swal.close();
             Swal.fire({
                 icon: 'error',
                 title: 'Koneksi Terputus',
