@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Presensi</title>
+<link rel='stylesheet' href='css/style.css'>
+</head>
+<body>
+<div class='card'>
+<h2>Check In Gym</h2>
+<button onclick='checkin()'>Check In</button>
+</div>
+
+<script>
+const API_URL="https://script.google.com/macros/s/AKfycbz2al2zmSCFNbSrKG3hb5bxCPqx2UqG63Q5f4nQSO2Ntd0QMRuf2BpEtLrvawz-62-U/exec";
+
+async function checkin(){
+let r=await fetch(API_URL,{
+method:'POST',
+body:JSON.stringify({
+action:'presensi',
+memberId:localStorage.getItem('memberId')
+})
+});
+
+let j=await r.json();
+alert(j.message);
+}
+</script>
+
+</body>
+  </html>

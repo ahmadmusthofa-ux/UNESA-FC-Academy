@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Login Player - UNESA FC ACADEMY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pitch: {
+                            dark: '#0a122c',
+                            card: 'rgba(20, 30, 65, 0.75)',
+                            border: 'rgba(255, 255, 255, 0.15)',
+                            lime: '#b6f000',
+                            blue: '#002f6c',
+                            accent: '#6366f1',
+                            emerald: '#10b981'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Latar belakang stadion terang ceria yang dinamis, matching dengan halaman utama & register */
+        body {
+            min-height: 100vh;
+            background-color: #09464b;
+            background-image: 
+                radial-gradient(circle at 50% -10%, rgba(182, 240, 0, 0.4) 0%, transparent 60%), 
+                radial-gradient(circle at 50% 115%, rgba(16, 185, 129, 0.35) 0%, transparent 55%),
+                radial-gradient(circle at 10% 40%, rgba(99, 102, 241, 0.25) 0%, transparent 50%), 
+                radial-gradient(circle at 90% 70%, rgba(16, 185, 129, 0.2) 0%, transparent 45%),
+                repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.015) 0px, rgba(255, 255, 255, 0.015) 40px, transparent 40px, transparent 80px);
+            background-attachment: fixed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px 12px;
+        }
+
+        .card-shadow {
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+    </style>
+</head>
+<body>
+
+<div class="w-full max-w-md bg-pitch-card backdrop-blur-2xl border border-pitch-border rounded-[24px] sm:rounded-[35px] p-6 sm:p-10 card-shadow text-center my-auto text-white">
+    
+    <div class="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-4 bg-white/5 rounded-2xl flex items-center justify-center p-3 border border-white/10 shadow-[0_0_20px_rgba(182,240,0,0.25)]">
+        <img src="https://i.ibb.co.com/vCdYT1pF/logo-unesa-Fc-removebg-preview.png" alt="Logo UNESA FC" class="w-full h-full object-contain">
+    </div>
+
+    <div class="text-pitch-lime tracking-[3px] sm:tracking-[4px] text-[10px] sm:text-[11px] font-black uppercase mb-1">Unesa Football Academy</div>
+    <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight">PORTAL LOGIN</h2>
+    <p class="text-xs text-slate-300 max-w-sm mx-auto mt-2 mb-8 leading-relaxed px-1">
+        Masuk menggunakan email aktif Anda untuk mengelola profil latihan, presensi QR, dan bukti pembayaran player.
+    </p>
+
+    <!-- FORM START -->
+    <div class="text-left space-y-4">
+        <div>
+            <label class="block text-xs font-bold text-slate-300 mb-2 ml-1">Email Aktif</label>
+            <input id="email" type="email" placeholder="nama@email.com" class="w-full py-3 px-4 rounded-xl bg-white/95 text-pitch-dark text-xs sm:text-sm font-semibold border-2 border-transparent focus:border-pitch-lime focus:bg-white outline-none transition duration-300">
+        </div>
+
+        <div>
+            <label class="block text-xs font-bold text-slate-300 mb-2 ml-1">Password</label>
+            <div class="relative">
+                <input id="password" type="password" placeholder="••••••••" class="w-full py-3 px-4 rounded-xl bg-white/95 text-pitch-dark text-xs sm:text-sm font-semibold border-2 border-transparent focus:border-pitch-lime focus:bg-white outline-none transition duration-300">
+                <span onclick="togglePassword()" class="absolute right-4 top-1/2 -translate-y-1/2 cursor-pointer text-slate-500 font-bold hover:text-pitch-dark transition text-sm select-none">👁️</span>
+            </div>
+        </div>
+
+        <div class="flex items-center justify-between text-[11px] sm:text-xs font-bold pt-1">
+            <label class="flex items-center gap-2 text-slate-300 cursor-pointer select-none">
+                <input type="checkbox" id="rememberMe" class="rounded accent-pitch-lime w-4 h-4 cursor-pointer">
+                <span>Ingat Saya</span>
+            </label>
+            <a href="javascript:void(0)" onclick="forgotPassword()" class="text-pitch-lime hover:underline">Reset Password?</a>
+        </div>
+    </div>
+
+    <button onclick="login()" id="btnLogin" class="w-full mt-8 py-4 bg-pitch-lime text-pitch-dark font-black tracking-wider rounded-xl hover:opacity-90 active:scale-[0.98] transition-all duration-300 uppercase shadow-[0_10px_25px_rgba(182,240,0,0.3)] text-xs sm:text-sm">
+        Masuk Sekarang
+    </button>
+
+    <div id="loading" class="hidden mt-4 items-center justify-center gap-2 text-pitch-lime font-black text-sm uppercase tracking-widest animate-pulse">
+        <div class="w-4 h-4 border-2 border-transparent border-t-pitch-lime rounded-full animate-spin"></div>
+        <span>Memverifikasi akun player...</span>
+    </div>
+
+    <div class="mt-6 text-xs font-bold text-slate-400">
+        Belum mendaftar? <a href="register.html" class="text-pitch-lime hover:underline">Daftar Akun Baru</a>
+    </div>
+
+    <a href="index.html" class="block text-center mt-6 text-slate-400 hover:text-pitch-lime font-bold text-xs tracking-wider transition">
+        ← KEMBALI KE BERANDA
+    </a>
+</div>
+
+<script>
+    const API_URL = "https://script.google.com/macros/s/AKfycby-caKYBBTqnEEt3az__d4HoymcVkomEDHIUHrFivmDhwsr0HzlE-TtPFVSmake_le2/exec";
+
+    window.onload = function() {
+        let saved = localStorage.getItem('savedEmail');
+        if(saved) {
+            document.getElementById('email').value = saved;
+            document.getElementById('rememberMe').checked = true;
+        }
+    }
+
+    function togglePassword() {
+        let p = document.getElementById('password');
+        p.type = (p.type === 'password') ? 'text' : 'password';
+    }
+
+    async function forgotPassword() {
+        const { value: email } = await Swal.fire({
+            title: 'Lupa Password',
+            input: 'email',
+            inputLabel: 'Masukkan email terdaftar',
+            inputPlaceholder: 'budi@gmail.com',
+            confirmButtonText: 'Kirim Instruksi',
+            confirmButtonColor: '#6366f1',
+            showCancelButton: true
+        });
+
+        if (email) {
+            Swal.fire({ 
+                title: 'Memproses...', 
+                text: 'Mohon tunggu sebentar',
+                allowOutsideClick: false, 
+                showConfirmButton: false,
+                didOpen: () => Swal.showLoading() 
+            });
+            try {
+                let r = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ action: 'forgotPassword', email: email.trim().toLowerCase() })
+                });
+                let j = await r.json();
+                Swal.fire({ icon: j.status ? 'success' : 'error', title: j.status ? 'Berhasil' : 'Gagal', text: j.message, confirmButtonColor: '#6366f1' });
+            } catch(e) {
+                Swal.fire({ icon: 'error', title: 'Error', text: 'Koneksi gagal', confirmButtonColor: '#ef4444' });
+            }
+        }
+    }
+
+    async function login() {
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const rememberMe = document.getElementById('rememberMe').checked;
+
+        if(!email || !password) {
+            Swal.fire({ icon: 'warning', title: 'Data Kosong', text: 'Email dan password wajib diisi', confirmButtonColor: '#6366f1' });
+            return;
+        }
+
+        Swal.fire({
+            title: 'Autentikasi...',
+            text: 'Sedang memverifikasi data player',
+            allowOutsideClick: false,
+            allowEscapeKey: false,
+            showConfirmButton: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        if(rememberMe) localStorage.setItem('savedEmail', email);
+        else localStorage.removeItem('savedEmail');
+
+        const loader = document.getElementById('loading');
+        loader.classList.remove('hidden');
+        loader.classList.add('flex');
+
+        try {
+            let r = await fetch(API_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'login',
+                    email: email.toLowerCase(),
+                    password: password
+                })
+            });
+
+            let j = await r.json();
+            loader.classList.add('hidden');
+            loader.classList.remove('flex');
+            Swal.close();
+
+            if(j.status) {
+                localStorage.setItem('memberId', j.memberId);
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Akses Diterima',
+                    text: 'Selamat datang kembali, mengalihkan ke dashboard...',
+                    timer: 1500,
+                    showConfirmButton: false
+                }).then(() => {
+                    window.location = 'dashboard-member.html';
+                });
+            } else {
+                Swal.fire({ 
+                    icon: 'error', 
+                    title: 'Gagal Masuk', 
+                    text: j.message || 'Email atau password salah',
+                    confirmButtonColor: '#ef4444'
+                });
+            }
+        } catch(err) {
+            loader.classList.add('hidden');
+            loader.classList.remove('flex');
+            Swal.fire({ 
+                icon: 'error', 
+                title: 'Koneksi Terputus', 
+                text: 'Gagal menghubungi server. Periksa internet Anda.',
+                confirmButtonColor: '#ef4444'
+            });
+        }
+    }
+</script>
+</body>
+</html>

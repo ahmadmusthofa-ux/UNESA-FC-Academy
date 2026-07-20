@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <title>Pembayaran Iuran - UNESA FC ACADEMY</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pitch: {
+                            dark: '#0a122c',
+                            card: 'rgba(20, 30, 65, 0.75)',
+                            border: 'rgba(255, 255, 255, 0.15)',
+                            lime: '#b6f000',
+                            blue: '#002f6c',
+                            accent: '#6366f1',
+                            emerald: '#10b981'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Latar belakang stadion terang ceria yang energik, matching dengan halaman utama & dashboard */
+        body {
+            min-height: 100vh;
+            background-color: #09464b;
+            background-image: 
+                radial-gradient(circle at 50% -10%, rgba(182, 240, 0, 0.4) 0%, transparent 60%), 
+                radial-gradient(circle at 50% 115%, rgba(16, 185, 129, 0.35) 0%, transparent 55%),
+                radial-gradient(circle at 10% 40%, rgba(99, 102, 241, 0.25) 0%, transparent 50%), 
+                radial-gradient(circle at 90% 70%, rgba(16, 185, 129, 0.2) 0%, transparent 45%),
+                repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.015) 0px, rgba(255, 255, 255, 0.015) 40px, transparent 40px, transparent 80px);
+            background-attachment: fixed;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px 12px;
+        }
+
+        .card-shadow {
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+    </style>
+</head>
+<body>
+
+<!-- MAIN PAYMENT CARD -->
+<div class="w-full max-w-md bg-pitch-card backdrop-blur-2xl border border-pitch-border rounded-[28px] sm:rounded-[35px] p-5 sm:p-8 card-shadow text-center text-white my-auto">
+    
+    <!-- HEADER BRAND & LOGO -->
+    <div class="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 bg-white/5 rounded-2xl flex items-center justify-center p-2.5 sm:p-3 border border-white/10 shadow-[0_0_20px_rgba(182,240,0,0.25)]">
+        <img src="https://i.ibb.co.com/vCdYT1pF/logo-unesa-Fc-removebg-preview.png" alt="Logo UNESA FC" class="w-full h-full object-contain">
+    </div>
+
+    <div class="text-pitch-lime tracking-[3px] sm:tracking-[4px] text-[10px] sm:text-[11px] font-black uppercase mb-1">Unesa Football Academy</div>
+    <h2 class="text-2xl sm:text-3xl font-black text-white tracking-tight">PEMBAYARAN IURAN</h2>
+    <p class="text-xs text-slate-300 max-w-sm mx-auto mt-2 mb-6 leading-relaxed px-1">
+        Scan kode QRIS resmi di bawah ini, kemudian unggah foto bukti transfer Anda untuk proses konfirmasi otomatis oleh admin.
+    </p>
+
+    <!-- QRIS DISPLAY BOX -->
+    <div class="bg-white rounded-2xl sm:rounded-3xl p-5 mb-6 card-shadow border border-white/10 text-slate-800">
+        <div class="flex justify-center items-center">
+            <img src="https://i.ibb.co.com/LskJsCX/QR-FITNESS-FIKK-UNESA-1770263117.png" alt="QRIS UNESA FC ACADEMY" class="max-w-[200px] sm:max-w-[240px] w-full h-auto rounded-lg shadow-sm">
+        </div>
+        <p class="mt-3 text-[10px] sm:text-xs text-slate-400 font-extrabold uppercase tracking-wider">Mendukung Semua E-Wallet & Mobile Banking</p>
+    </div>
+
+    <!-- FORM INPUTS -->
+    <div class="text-left space-y-4">
+        <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1.5 ml-1">Nominal Pembayaran (Rupiah)</label>
+            <input type="number" id="nominal" placeholder="Masukkan angka saja (Contoh: 250000)" inputmode="numeric" class="w-full py-3 px-4 rounded-xl bg-white/95 text-pitch-dark text-xs sm:text-sm font-semibold border-2 border-transparent focus:border-pitch-lime focus:bg-white outline-none transition duration-300">
+        </div>
+
+        <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1.5 ml-1">Bukti Transfer (Gambar / Screenshot)</label>
+            <div class="relative w-full py-3 px-4 rounded-xl bg-white/5 border-2 border-dashed border-white/20 hover:border-pitch-lime hover:bg-white/10 transition duration-300 cursor-pointer flex items-center justify-center text-center">
+                <input type="file" id="bukti" accept="image/*" onchange="previewImage(event)" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
+                <span id="file-label" class="text-xs text-slate-300 font-bold tracking-wide uppercase">Pilih Foto Bukti Bayar</span>
+            </div>
+        </div>
+
+        <!-- IMAGE PREVIEW ZONE -->
+        <div class="hidden bg-black/40 rounded-xl p-3 border border-white/5" id="previewZone">
+            <p class="text-[10px] font-black text-pitch-lime uppercase tracking-widest mb-2 text-center">Pratinjau Bukti Transfer</p>
+            <div class="flex justify-center">
+                <img id="imgPreview" class="max-h-[160px] rounded-lg object-contain">
+            </div>
+        </div>
+    </div>
+
+    <!-- ACTIONS -->
+    <button onclick="bayar()" class="w-full mt-6 py-4 bg-pitch-lime text-pitch-dark font-black tracking-wider rounded-xl hover:opacity-90 active:scale-[0.98] transition-all duration-300 uppercase shadow-[0_10px_25px_rgba(182,240,0,0.3)] text-xs sm:text-sm">
+        Konfirmasi Pembayaran
+    </button>
+
+    <a href="dashboard-member.html" class="block text-center mt-6 text-slate-400 hover:text-pitch-lime font-bold text-xs tracking-wider transition">
+        ← KEMBALI KE DASHBOARD
+    </a>
+
+    <div class="mt-8 text-[9px] font-bold text-slate-500 uppercase tracking-widest">
+        VERIFIKASI OTOMATIS OLEH TIM ADMIN
+    </div>
+</div>
+
+<script>
+    const API_URL = "https://script.google.com/macros/s/AKfycby-caKYBBTqnEEt3az__d4HoymcVkomEDHIUHrFivmDhwsr0HzlE-TtPFVSmake_le2/exec";
+
+    function previewImage(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        // Update label text
+        document.getElementById('file-label').innerText = file.name;
+        
+        const reader = new FileReader();
+        reader.onload = function() {
+            const previewImg = document.getElementById('imgPreview');
+            previewImg.src = reader.result;
+            document.getElementById('previewZone').classList.remove('hidden');
+        }
+        reader.readAsDataURL(file);
+    }
+
+    async function bayar() {
+        const nominalInput = document.getElementById('nominal');
+        const buktiInput = document.getElementById('bukti');
+
+        if (!nominalInput.value || !buktiInput.files.length) {
+            Swal.fire({
+                icon: 'warning',
+                title: 'Data Belum Lengkap',
+                text: 'Silakan isi nominal pembayaran dan lampirkan foto bukti transfer.',
+                confirmButtonColor: '#6366f1'
+            });
+            return;
+        }
+
+        const file = buktiInput.files[0];
+        const reader = new FileReader();
+
+        reader.onload = async function() {
+            const base64 = reader.result.split(',')[1];
+
+            Swal.fire({
+                title: 'Mengunggah Bukti...',
+                html: 'Mohon tunggu sebentar, transaksi sedang diproses.',
+                allowOutsideClick: false,
+                didOpen: () => { Swal.showLoading(); }
+            });
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        action: 'payment',
+                        memberId: localStorage.getItem('memberId'),
+                        nominal: nominalInput.value,
+                        fileName: file.name,
+                        mimeType: file.type,
+                        fileBase64: base64
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.status) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: 'Berhasil Dikirim!',
+                        text: 'Bukti pembayaran iuran berhasil diterima. Admin akan memverifikasi segera.',
+                        confirmButtonColor: '#10b981'
+                    }).then(() => {
+                        window.location.href = 'dashboard-member.html';
+                    });
+                } else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Unggah Gagal',
+                        text: result.message || 'Terjadi masalah pada sistem database.',
+                        confirmButtonColor: '#ef4444'
+                    });
+                }
+            } catch (err) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Kesalahan Koneksi',
+                    text: 'Koneksi internet tidak stabil. Silakan coba kembali.',
+                    confirmButtonColor: '#ef4444'
+                });
+            }
+        };
+        reader.readAsDataURL(file);
+    }
+</script>
+
+</body>
+</html>

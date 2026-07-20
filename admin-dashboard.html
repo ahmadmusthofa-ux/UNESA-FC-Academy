@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+    <title>Admin Dashboard - UNESA FC ACADEMY</title>
+    <!-- QR Code Scanner Library -->
+    <script src="https://unpkg.com/html5-qrcode"></script>
+    <!-- Google Fonts & Tailwind CSS -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        pitch: {
+                            dark: '#0a122c',
+                            card: 'rgba(20, 30, 65, 0.75)',
+                            border: 'rgba(255, 255, 255, 0.15)',
+                            lime: '#b6f000',
+                            blue: '#002f6c',
+                            accent: '#6366f1',
+                            emerald: '#10b981',
+                            rose: '#f43f5e',
+                            amber: '#f59e0b'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* Latar belakang stadion terang ceria yang dinamis, matching dengan seluruh halaman */
+        body {
+            min-height: 100vh;
+            background-color: #0b1536;
+            background-image: 
+                radial-gradient(circle at 50% -10%, rgba(182, 240, 0, 0.35) 0%, transparent 60%), 
+                radial-gradient(circle at 50% 115%, rgba(16, 185, 129, 0.3) 0%, transparent 55%),
+                radial-gradient(circle at 10% 40%, rgba(99, 102, 241, 0.22) 0%, transparent 50%), 
+                radial-gradient(circle at 90% 70%, rgba(16, 185, 129, 0.18) 0%, transparent 45%),
+                repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.015) 0px, rgba(255, 255, 255, 0.015) 40px, transparent 40px, transparent 80px);
+            background-attachment: fixed;
+        }
+
+        .card-shadow {
+            box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+        }
+
+        /* Navigasi Panel (Hidden secara default, dimunculkan via script) */
+        .panel {
+            display: none;
+        }
+        .panel.active {
+            display: block;
+        }
+
+        /* Penyesuaian Style Scanner HTML5 */
+        #reader {
+            border: 4px dashed rgba(182, 240, 0, 0.4) !important;
+            border-radius: 20px !important;
+            overflow: hidden;
+            background: #070e28 !important;
+        }
+        #reader button {
+            background-color: #b6f000 !important;
+            color: #0a122c !important;
+            font-weight: 800 !important;
+            border: none !important;
+            padding: 8px 16px !important;
+            border-radius: 10px !important;
+            cursor: pointer !important;
+            font-size: 12px !important;
+            text-transform: uppercase !important;
+            margin: 10px auto !important;
+            transition: all 0.2s !important;
+        }
+        #reader button:hover {
+            opacity: 0.9 !important;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(182, 240, 0, 0.3);
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="p-3 sm:p-6 text-white min-h-screen flex flex-col justify-start items-center">
+
+<!-- BEEP AUDIO FOR SCAN -->
+<audio id="beepSound" src="https://assets.mixkit.co/active_storage/sfx/2568/2568-preview.mp3"></audio>
+
+<!-- POP-UP MODAL PANEL -->
+<div id="scanModal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-[99999] hidden items-center justify-center p-4">
+    <div class="bg-pitch-card backdrop-blur-2xl border border-pitch-border text-white w-full max-w-md p-6 sm:p-8 rounded-[28px] text-center card-shadow transition-all duration-300">
+        <div id="modalContent" class="space-y-4">
+            <div class="text-5xl sm:text-6xl" id="modalIcon">✅</div>
+            <div class="text-xl sm:text-2xl font-black text-white tracking-tight" id="modalTitle">Informasi</div>
+            <div class="text-sm text-slate-300 leading-relaxed py-2 px-1" id="modalText">Detail pesan konfirmasi scan.</div>
+            <button class="w-full py-3.5 bg-pitch-lime text-pitch-dark font-black tracking-wider rounded-xl hover:opacity-90 active:scale-[0.98] transition-all duration-300 uppercase shadow-[0_10px_25px_rgba(182,240,0,0.3)] text-xs sm:text-sm" id="modalOkBtn" onclick="closeModal()">OKE, MENGERTI</button>
+        </div>
+    </div>
+</div>
+
+<div class="w-full max-w-5xl space-y-6">
+
+    <!-- TOPBAR BRANDING -->
+    <div class="flex flex-col sm:flex-row justify-between items-center gap-4 p-5 sm:p-6 rounded-[24px] sm:rounded-[28px] bg-pitch-card backdrop-blur-2xl border border-pitch-border card-shadow w-full">
+        <div class="flex items-center gap-3.5">
+            <div class="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center p-2 border border-white/10 shadow-[0_0_15px_rgba(182,240,0,0.2)]">
+                <img src="https://i.ibb.co.com/vCdYT1pF/logo-unesa-Fc-removebg-preview.png" alt="Logo UNESA FC" class="w-full h-full object-contain">
+            </div>
+            <div>
+                <div class="text-pitch-lime tracking-[2px] text-[9px] font-black uppercase">Unesa Football Academy</div>
+                <h2 class="text-lg sm:text-xl font-black text-white tracking-tight">PANEL CONTROL ADMIN</h2>
+            </div>
+        </div>
+        <button onclick="logout()" class="px-5 py-2.5 bg-pitch-rose/25 text-pitch-rose border border-pitch-rose/30 font-bold text-xs rounded-xl hover:bg-pitch-rose/35 active:scale-[0.97] transition-all uppercase tracking-wider">
+            Logout Admin
+        </button>
+    </div>
+
+    <!-- STATISTICS TILES -->
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3.5 w-full">
+        <div onclick="filterByStatus('all')" class="bg-pitch-card backdrop-blur-2xl border border-pitch-border p-4 sm:p-5 rounded-2xl sm:rounded-3xl card-shadow cursor-pointer hover:bg-white/5 transition-all duration-300 hover:scale-[1.02]">
+            <div class="text-[9px] sm:text-[10px] font-black text-slate-400 tracking-wider uppercase">Total Player</div>
+            <h2 id="total" class="text-3xl sm:text-4xl font-black text-white mt-1.5">0</h2>
+        </div>
+        <div onclick="filterByStatus('Aktif')" class="bg-pitch-card backdrop-blur-2xl border border-pitch-border p-4 sm:p-5 rounded-2xl sm:rounded-3xl card-shadow cursor-pointer hover:bg-white/5 transition-all duration-300 hover:scale-[1.02] border-l-4 border-l-pitch-emerald">
+            <div class="text-[9px] sm:text-[10px] font-black text-slate-400 tracking-wider uppercase">Player Hack / Aktif</div>
+            <h2 id="aktif" class="text-3xl sm:text-4xl font-black text-pitch-emerald mt-1.5">0</h2>
+        </div>
+        <div onclick="filterByStatus('Pending')" class="bg-pitch-card backdrop-blur-2xl border border-pitch-border p-4 sm:p-5 rounded-2xl sm:rounded-3xl card-shadow cursor-pointer hover:bg-white/5 transition-all duration-300 hover:scale-[1.02] border-l-4 border-l-pitch-amber">
+            <div class="text-[9px] sm:text-[10px] font-black text-slate-400 tracking-wider uppercase">Pending Iuran</div>
+            <h2 id="pending" class="text-3xl sm:text-4xl font-black text-pitch-amber mt-1.5">0</h2>
+        </div>
+        <div onclick="filterByStatus('Expired')" class="bg-pitch-card backdrop-blur-2xl border border-pitch-border p-4 sm:p-5 rounded-2xl sm:rounded-3xl card-shadow cursor-pointer hover:bg-white/5 transition-all duration-300 hover:scale-[1.02] border-l-4 border-l-pitch-rose">
+            <div class="text-[9px] sm:text-[10px] font-black text-slate-400 tracking-wider uppercase">Masa Expired</div>
+            <h2 id="expired" class="text-3xl sm:text-4xl font-black text-pitch-rose mt-1.5">0</h2>
+        </div>
+    </div>
+
+    <!-- TAB ACTIONS NAVIGATION -->
+    <div id="tabs-container" class="flex flex-wrap gap-2 justify-start sm:justify-center w-full">
+        <button id="btn-scan" onclick="showTab('scan')" class="px-4 py-3 bg-pitch-card border border-pitch-border rounded-xl font-bold text-xs uppercase tracking-wider text-slate-300 hover:bg-white/5 active:scale-[0.98] transition-all">
+            📷 QR Scanner
+        </button>
+        <button id="btn-approval" onclick="showTab('approval')" class="px-4 py-3 bg-pitch-card border border-pitch-border rounded-xl font-bold text-xs uppercase tracking-wider text-slate-300 hover:bg-white/5 active:scale-[0.98] transition-all">
+            ⏳ Verifikasi Player
+        </button>
+        <button id="btn-membersTab" onclick="showTab('membersTab')" class="px-4 py-3 bg-pitch-card border border-pitch-border rounded-xl font-bold text-xs uppercase tracking-wider text-slate-300 hover:bg-white/5 active:scale-[0.98] transition-all">
+            👥 Daftar Player
+        </button>
+        <button id="btn-rekap" onclick="showTab('rekap')" class="px-4 py-3 bg-pitch-card border border-pitch-border rounded-xl font-bold text-xs uppercase tracking-wider text-slate-300 hover:bg-white/5 active:scale-[0.98] transition-all">
+            📊 Rekap Latihan
+        </button>
+        <button id="btn-pricing" onclick="showTab('pricing')" class="px-4 py-3 bg-pitch-card border border-pitch-border rounded-xl font-bold text-xs uppercase tracking-wider text-slate-300 hover:bg-white/5 active:scale-[0.98] transition-all">
+            💰 Mengelola Biaya
+        </button>
+    </div>
+
+    <!-- MAIN INTERFACE PANELS -->
+    
+    <!-- PANEL 1: QR SCANNER -->
+    <div id="scan" class="panel active bg-pitch-card backdrop-blur-2xl border border-pitch-border rounded-[24px] sm:rounded-[28px] p-5 sm:p-8 card-shadow text-center">
+        <h3 class="text-lg font-black tracking-tight text-white mb-2 uppercase">Scan Presensi Latihan Player</h3>
+        <p class="text-xs text-slate-400 mb-6 max-w-md mx-auto">Hadapkan kode QR dari HP player di depan kamera aktif di bawah ini untuk input absen otomatis.</p>
+        
+        <div class="max-w-md mx-auto overflow-hidden rounded-2xl shadow-inner bg-black/20 p-2">
+            <div id="reader" class="w-full"></div>
+        </div>
+        <p class="text-[10px] text-pitch-lime font-bold tracking-widest uppercase mt-4">Sistem Pemindai Presensi Otomatis Aktif</p>
+    </div>
+
+    <!-- PANEL 2: APPROVAL REGISTRASI & IURAN -->
+    <div id="approval" class="panel bg-pitch-card backdrop-blur-2xl border border-pitch-border rounded-[24px] sm:rounded-[28px] p-5 sm:p-8 card-shadow">
+        <h3 class="text-lg font-black tracking-tight text-white mb-1 uppercase">Verifikasi Player Baru / Iuran</h3>
+        <p class="text-xs text-slate-400 mb-6">Berikut adalah daftar calon player baru atau perpanjangan iuran yang memerlukan persetujuan admin.</p>
+        
+        <div class="table-wrap overflow-x-auto rounded-xl border border-white/5" id="membersApprovalList">
+            <!-- Table content dynamically loaded -->
+        </div>
+    </div>
+
+    <!-- PANEL 3: DAFTAR ALL MEMBERS -->
+    <div id="membersTab" class="panel bg-pitch-card backdrop-blur-2xl border border-pitch-border rounded-[24px] sm:rounded-[28px] p-5 sm:p-8 card-shadow">
+        <h3 id="memberListTitle" class="text-lg font-black tracking-tight text-white mb-1 uppercase">Daftar Seluruh Player</h3>
+        <p class="text-xs text-slate-400 mb-5">Gunakan form pencarian untuk mempermudah melacak detail profil data personal player.</p>
+        
+        <input id="searchInput" class="w-full py-3 px-4 rounded-xl bg-white/95 text-pitch-dark text-xs sm:text-sm font-semibold border-2 border-transparent focus:border-pitch-lime focus:bg-white outline-none transition duration-300 mb-4 placeholder-slate-400" placeholder="Ketik nama player atau NIK/ID untuk melacak..." onkeyup="searchMember()">
+        
+        <div class="table-wrap overflow-x-auto rounded-xl border border-white/5" id="memberTableWrapper">
+            <!-- Table content dynamically loaded -->
+        </div>
+    </div>
+
+    <!-- PANEL 4: REKAP ABSENSI BULANAN -->
+    <div id="rekap" class="panel bg-pitch-card backdrop-blur-2xl border border-pitch-border rounded-[24px] sm:rounded-[28px] p-5 sm:p-8 card-shadow">
+        <h3 class="text-lg font-black tracking-tight text-white mb-1 uppercase">Rekap Absensi Latihan Bulanan</h3>
+        <p class="text-xs text-slate-400 mb-6">Pilih bulan latihan di bawah ini untuk melihat daftar kehadiran harian serta rekap total latihan siswa.</p>
+        
+        <div class="flex flex-wrap gap-2.5 items-center mb-6">
+            <input type="month" id="bulan" class="py-2.5 px-4 rounded-xl bg-white/95 text-pitch-dark text-xs font-semibold outline-none focus:bg-white transition duration-300">
+            <button class="px-5 py-2.5 bg-pitch-lime text-pitch-dark font-black tracking-wider rounded-xl hover:opacity-90 active:scale-[0.98] transition-all duration-300 uppercase text-xs shadow-[0_10px_20px_rgba(182,240,0,0.2)]" onclick="loadRekap()">Tampilkan</button>
+            <button class="px-5 py-2.5 bg-pitch-accent text-white font-black tracking-wider rounded-xl hover:opacity-90 active:scale-[0.98] transition-all duration-300 uppercase text-xs" onclick="exportExcel()">Export CSV</button>
+        </div>
+        
+        <div class="table-wrap overflow-x-auto rounded-xl border border-white/5" id="rekapTable">
+            <!-- Rekap content loaded here -->
+        </div>
+    </div>
+
+    <!-- PANEL 5: MANAGING PRICING (SETTINGS) -->
+    <div id="pricing" class="panel bg-pitch-card backdrop-blur-2xl border border-pitch-border rounded-[24px] sm:rounded-[28px] p-5 sm:p-8 card-shadow space-y-6">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <h3 class="text-lg font-black tracking-tight text-white mb-1 uppercase">Manajemen Price List / Biaya</h3>
+                <p class="text-xs text-slate-400">Segala perubahan akan langsung terupdate di halaman utama (Home) secara real-time.</p>
+            </div>
+            <button onclick="toggleAddForm()" class="px-4 py-2.5 bg-pitch-emerald text-white font-black tracking-wider text-xs rounded-xl hover:opacity-95 active:scale-[0.97] transition-all uppercase shadow-[0_10px_20px_rgba(16,185,129,0.2)]">
+                ➕ Tambah Paket Baru
+            </button>
+        </div>
+
+        <!-- FORM TAMBAH PROGRAM BARU (COLLAPSIBLE) -->
+        <div id="addPricingForm" class="hidden bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4 transition-all duration-300">
+            <h4 class="text-xs font-black tracking-widest text-pitch-lime uppercase">Form Tambah Paket Latihan Baru</h4>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-300 mb-1.5 ml-1">Nama Kategori</label>
+                    <input type="text" id="newCatName" placeholder="Contoh: Premium (5x/Minggu)" class="w-full py-2.5 px-4 rounded-xl bg-pitch-dark border border-white/15 text-white text-xs sm:text-sm font-semibold focus:border-pitch-lime outline-none">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-300 mb-1.5 ml-1">Harga (Rupiah)</label>
+                    <input type="number" id="newCatPrice" placeholder="Contoh: 450000" class="w-full py-2.5 px-4 rounded-xl bg-pitch-dark border border-white/15 text-white text-xs sm:text-sm font-semibold focus:border-pitch-lime outline-none">
+                </div>
+                <div>
+                    <label class="block text-[10px] font-bold text-slate-300 mb-1.5 ml-1">Deskripsi Paket Latihan</label>
+                    <input type="text" id="newCatDesc" placeholder="Penjelasan singkat mengenai benefit latihan" class="w-full py-2.5 px-4 rounded-xl bg-pitch-dark border border-white/15 text-white text-xs sm:text-sm font-semibold focus:border-pitch-lime outline-none">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2.5">
+                <button onclick="toggleAddForm()" class="px-4 py-2 bg-white/10 text-white font-bold text-xs rounded-xl hover:bg-white/15 transition">Batal</button>
+                <button onclick="submitNewPrice()" class="px-5 py-2 bg-pitch-lime text-pitch-dark font-black text-xs rounded-xl hover:opacity-90 active:scale-[0.98] transition shadow-[0_5px_15px_rgba(182,240,0,0.3)]">Simpan Paket</button>
+            </div>
+        </div>
+
+        <!-- TABEL PRICE LIST -->
+        <div class="table-wrap overflow-x-auto rounded-xl border border-white/5 bg-black/10">
+            <table class="w-full text-left border-collapse min-w-[650px] text-slate-300 text-xs sm:text-sm">
+                <thead>
+                    <tr class="bg-white/5 border-b border-white/10 text-pitch-lime uppercase font-black tracking-wider">
+                        <th class="py-4 px-4 w-[25%]">Nama Kategori</th>
+                        <th class="py-4 px-4 w-[20%]">Harga (Rupiah)</th>
+                        <th class="py-4 px-4 w-[35%]">Deskripsi Kategori</th>
+                        <th class="py-4 px-4 w-[20%] text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody id="pricingTableBody" class="divide-y divide-white/5">
+                    <tr>
+                        <td colspan="4" class="text-center py-8 text-slate-400 font-bold">Memuat data harga...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- PANEL FOOTER -->
+    <div class="mt-8 text-center text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+        © UNESA FOOTBALL ACADEMY 2026 • Universitas Negeri Surabaya
+    </div>
+</div>
+
+<script>
+// URL API yang sesuai dengan database penanganan member UNESA FC ACADEMY Anda
+const API_URL = "https://script.google.com/macros/s/AKfycby-caKYBBTqnEEt3az__d4HoymcVkomEDHIUHrFivmDhwsr0HzlE-TtPFVSmake_le2/exec";
+let scanner;
+let scanLock = false;
+let allMembers = [];
+let barcodeBuffer = "";
+
+function startAutoUpdate() {
+    setInterval(() => {
+        loadStats();
+        if (document.getElementById('approval').classList.contains('active')) {
+            loadApprovalList();
+        }
+    }, 30000);
+}
+
+// Handler Barcode Scanner eksternal (Keyboard input)
+document.addEventListener("keydown", function(e) {
+    if (document.activeElement.id === 'searchInput') return;
+    if (e.key === "Enter") {
+        if (barcodeBuffer.length > 0) {
+            onScanSuccess(barcodeBuffer.trim());
+            barcodeBuffer = "";
+        }
+    } else {
+        if (e.key.length === 1) {
+            barcodeBuffer += e.key;
+        }
+    }
+});
+
+function showModal(icon, title, html, showBtn = true) {
+    document.getElementById('modalIcon').innerHTML = icon;
+    document.getElementById('modalTitle').innerHTML = title;
+    document.getElementById('modalText').innerHTML = html;
+    document.getElementById('modalOkBtn').style.display = showBtn ? 'block' : 'none';
+    document.getElementById('scanModal').classList.remove('hidden');
+    document.getElementById('scanModal').classList.add('flex');
+}
+
+function showLoadingModal(title, text) {
+    const spinner = '<div class="w-12 h-12 border-4 border-white/5 border-t-pitch-lime rounded-full animate-spin mx-auto mb-4"></div>';
+    showModal(spinner, title, text, false);
+}
+
+function closeModal() {
+    document.getElementById('scanModal').classList.add('hidden');
+    document.getElementById('scanModal').classList.remove('flex');
+}
+
+function logout() {
+    location = 'index.html';
+}
+
+function showTab(id) {
+    document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+    document.querySelectorAll('#tabs-container button').forEach(x => {
+        x.className = "px-4 py-3 bg-pitch-card border border-pitch-border rounded-xl font-bold text-xs uppercase tracking-wider text-slate-300 hover:bg-white/5 active:scale-[0.98] transition-all";
+    });
+
+    document.getElementById(id).classList.add('active');
+    
+    // Set style active tab
+    const activeBtn = document.getElementById('btn-' + id);
+    if(activeBtn) {
+        activeBtn.className = "px-4 py-3 bg-pitch-lime text-pitch-dark rounded-xl font-black text-xs uppercase tracking-wider active:scale-[0.98] transition-all shadow-[0_10px_25px_rgba(182,240,0,0.25)]";
+    }
+    
+    if(id === 'approval') loadApprovalList();
+    if(id === 'membersTab') {
+        if(document.getElementById('memberListTitle').innerText.indexOf('Status:') === -1) {
+             document.getElementById('memberListTitle').innerText = "Daftar Seluruh Player";
+        }
+        loadAllMembers();
+    }
+    if(id === 'pricing') loadPricingData();
+}
+
+async function filterByStatus(status) {
+    showTab('membersTab');
+    document.getElementById('memberListTitle').innerText = status === 'all' ? "Daftar Seluruh Player" : "Player Status: " + status;
+    
+    if (allMembers.length === 0) {
+        let r = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'membersList' }) });
+        let j = await r.json();
+        allMembers = j.rows.slice(1);
+    }
+    
+    if (status === 'all') {
+        renderMemberTable(allMembers);
+    } else {
+        const filtered = allMembers.filter(m => m[7] === status);
+        renderMemberTable(filtered);
+    }
+}
+
+// PROSES ABSEN PRESENSI SCANNER
+async function onScanSuccess(decodedText) {
+    if (scanLock) return;
+    scanLock = true;
+    
+    try {
+        document.getElementById('beepSound').play();
+    } catch(e) {}
+    
+    let localMember = allMembers.find(m => m[0] == decodedText);
+    let localName = localMember ? localMember[1] : "Siswa Akademi";
+
+    fetch(API_URL, {
+        method: 'POST',
+        body: JSON.stringify({ action: 'presensi', memberId: decodedText })
+    })
+    .then(r => r.json())
+    .then(d => {
+        let displayName = d.nama || localName;
+
+        if (d.status) {
+            showModal('✅', 'Check-In Berhasil', '👤 Nama : <b class="text-pitch-lime">' + displayName + '</b><br><br>🆔 ID Player : <b>' + decodedText + '</b><br><br>🟢 Kehadiran berhasil ditambahkan.');
+        } else {
+            let icon = '⚠️';
+            if (d.message && d.message.toLowerCase().includes('expired')) icon = '🚫';
+            if (d.message && d.message.toLowerCase().includes('sudah presensi')) icon = '⏳';
+
+            showModal(icon, 'Check-In Ditolak', '👤 Nama : <b class="text-pitch-rose">' + displayName + '</b><br><br>🆔 ID Player : <b>' + decodedText + '</b><br><br>🔴 Status : <b>' + (d.message || 'Gagal') + '</b>');
+        }
+        loadStats();
+        setTimeout(() => scanLock = false, 3000);
+    }).catch(err => {
+        showModal('❌', 'Kesalahan', 'Gagal menghubungkan ke database server UNESA FC.');
+        scanLock = false;
+    });
+}
+
+// Inisialisasi Scanner Kamera
+scanner = new Html5QrcodeScanner('reader', { 
+    fps: 10, 
+    qrbox: 250,
+    rememberLastUsedCamera: true,
+    showFlipCameraButton: true,
+    videoConstraints: { facingMode: "environment" }
+});
+scanner.render(onScanSuccess);
+
+async function loadStats() {
+    try {
+        let r = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'dashboardStats' }) });
+        let j = await r.json();
+        document.getElementById('total').innerHTML = j.total || 0;
+        document.getElementById('aktif').innerHTML = j.aktif || 0;
+        document.getElementById('pending').innerHTML = j.pending || 0;
+        document.getElementById('expired').innerHTML = j.expired || 0;
+        
+        let rl = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'membersList' }) });
+        let jl = await rl.json();
+        allMembers = jl.rows.slice(1);
+    } catch(e) {}
+}
+
+async function loadApprovalList() {
+    document.getElementById('membersApprovalList').innerHTML = '<p class="text-center py-6 text-xs font-bold text-slate-400">Menghubungi server...</p>';
+    
+    let r = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'membersList' }) });
+    let j = await r.json();
+    let h = `
+        <table class="w-full text-left border-collapse min-w-[500px] text-slate-300 text-xs sm:text-sm">
+            <thead>
+                <tr class="bg-white/5 border-b border-white/10 text-pitch-lime uppercase font-black tracking-wider">
+                    <th class="py-4 px-4">Nama Player</th>
+                    <th class="py-4 px-4">Program Latihan</th>
+                    <th class="py-4 px-4 text-center">Aksi Verifikasi</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5">
+    `;
+    let count = 0;
+    for(let i = 1; i < j.rows.length; i++) {
+        if(j.rows[i][7] == 'Pending') {
+            count++;
+            let paket = j.rows[i][6] || '-';
+            h += `
+                <tr class="hover:bg-white/[0.02] transition">
+                    <td class="py-4 px-4 font-bold text-white">${j.rows[i][1]}</td>
+                    <td class="py-4 px-4 font-semibold text-slate-300">${paket}</td>
+                    <td class="py-4 px-4 text-center space-x-2">
+                        <button class="px-3.5 py-1.5 bg-pitch-accent text-white font-black text-[10px] rounded-lg hover:opacity-90 active:scale-[0.95] transition" onclick="viewEvidence('${j.rows[i][0]}', '${j.rows[i][1]}')">BUKTI TRANSFER</button>
+                        <button class="px-3.5 py-1.5 bg-pitch-lime text-pitch-dark font-black text-[10px] rounded-lg hover:opacity-90 active:scale-[0.95] transition" onclick="approve('${j.rows[i][0]}')">TERIMA PLAYER</button>
+                    </td>
+                </tr>
+            `;
+        }
+    }
+    document.getElementById('membersApprovalList').innerHTML = count > 0 ? h + '</tbody></table>' : '<p class="text-center py-8 text-slate-400 font-bold text-xs">Semua data player terverifikasi. Tidak ada antrean baru.</p>';
+}
+
+async function viewEvidence(id, nama) {
+    showLoadingModal('Membuka Dokumen...', `Mengambil tautan bukti pembayaran milik <b>${nama}</b>...`);
+    try {
+        let r = await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'getPaymentEvidence', memberId: id })
+        });
+        let j = await r.json();
+        
+        if (j.status && j.fotoBukti) {
+            let fileUrl = j.fotoBukti;
+            if (fileUrl.includes('drive.google.com')) {
+                let fileId = "";
+                if (fileUrl.includes('id=')) fileId = fileUrl.split('id=')[1].split('&')[0];
+                else fileId = fileUrl.split('/d/')[1]?.split('/')[0];
+                if (fileId) fileUrl = `https://lh3.googleusercontent.com/d/${fileId}`;
+            }
+
+            let imgHtml = `
+                <div class="relative bg-black/40 border border-white/10 rounded-xl p-2.5 max-h-[250px] overflow-hidden flex items-center justify-center">
+                    <img src="${fileUrl}" class="max-h-[220px] rounded-lg object-contain" onerror="this.parentElement.innerHTML='<p class=\'text-pitch-rose text-xs font-bold p-6\'>Format file tidak didukung secara langsung. Silakan buka tautan Google Drive di bawah.</p>'">
+                </div>
+                <p class="text-xs text-slate-400 mt-4 leading-relaxed">Member: <b class="text-white">${nama}</b> (ID: ${id})</p>
+                <div class="mt-4">
+                    <a href="${j.fotoBukti}" target="_blank" class="text-pitch-lime hover:underline text-xs font-black uppercase tracking-wider">↗️ Buka Google Drive Eksternal</a>
+                </div>
+            `;
+            showModal('🧾', 'Bukti Transfer Pembayaran', imgHtml);
+        } else {
+            showModal('❓', 'Berkas Kosong', `Player <b>${nama}</b> belum melampirkan berkas bukti transfer.`);
+        }
+    } catch(e) {
+        showModal('❌', 'Kegagalan Koneksi', 'Gagal memuat pratinjau lampiran.');
+    }
+}
+
+async function approve(id) {
+    let d = prompt('Masukkan Durasi Sesi Latihan Aktif (Hari)', 30);
+    if (!d) return;
+    
+    showLoadingModal('Menyimpan Status...', 'Mendaftarkan masa berlaku player, mohon tunggu...');
+
+    try {
+        let r = await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'approveMember', memberId: id, durasiHari: d })
+        });
+        let res = await r.json();
+
+        if (res.status) {
+            showModal('🎉', 'Penerimaan Sukses', 'Masa aktif player berhasil diset ' + d + ' hari dari sekarang!');
+            loadApprovalList();
+            loadStats();
+        } else {
+            showModal('❌', 'Gagal', 'Terjadi error ketika memverifikasi data.');
+        }
+    } catch(e) {
+        showModal('❌', 'Error', 'Gagal berkomunikasi dengan sistem.');
+    }
+}
+
+async function loadAllMembers() {
+    if (allMembers.length === 0) {
+        document.getElementById('memberTableWrapper').innerHTML = "<p class='text-center py-6 text-xs text-slate-400 font-bold'>Memuat berkas player UNESA...</p>";
+        let r = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'membersList' }) });
+        let j = await r.json();
+        allMembers = j.rows.slice(1);
+    }
+    
+    const currentTitle = document.getElementById('memberListTitle').innerText;
+    if (currentTitle.includes("Status: Pending")) {
+        renderMemberTable(allMembers.filter(m => m[7] === 'Pending'));
+    } else if (currentTitle.includes("Status: Expired")) {
+        renderMemberTable(allMembers.filter(m => m[7] === 'Expired'));
+    } else if (currentTitle.includes("Status: Aktif")) {
+        renderMemberTable(allMembers.filter(m => m[7] === 'Aktif'));
+    } else {
+        renderMemberTable(allMembers);
+    }
+}
+
+function renderMemberTable(data) {
+    if (data.length === 0) {
+        document.getElementById('memberTableWrapper').innerHTML = "<p class='text-center py-8 text-slate-400 font-bold text-xs'>Tidak ada data player di kategori ini.</p>";
+        return;
+    }
+    let h = `
+        <table class="w-full text-left border-collapse min-w-[600px] text-slate-300 text-xs sm:text-sm">
+            <thead>
+                <tr class="bg-white/5 border-b border-white/10 text-pitch-lime uppercase font-black tracking-wider">
+                    <th class="py-4 px-4">Nama Lengkap</th>
+                    <th class="py-4 px-4">ID Player</th>
+                    <th class="py-4 px-4">Program Latihan</th>
+                    <th class="py-4 px-4">Masa Berlaku s/d</th>
+                    <th class="py-4 px-4 text-center">Status</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5">
+    `;
+    data.forEach(x => {
+        let exp = '-';
+        if (x[8]) {
+            let d = new Date(x[8]);
+            exp = !isNaN(d) ? d.toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) : x[8];
+        }
+        
+        let kategori = x[5] || '-';
+        let bClass = 'bg-pitch-emerald/20 text-pitch-emerald border-pitch-emerald/30';
+        if (x[7] === 'Expired') bClass = 'bg-pitch-rose/20 text-pitch-rose border-pitch-rose/30';
+        if (x[7] === 'Pending') bClass = 'bg-pitch-amber/20 text-pitch-amber border-pitch-amber/30';
+        
+        h += `
+            <tr class="hover:bg-white/[0.01] transition">
+                <td class="py-4 px-4 font-bold text-white">${x[1]}</td>
+                <td class="py-4 px-4 font-mono font-bold text-[11px] text-slate-400">${x[0]}</td>
+                <td class="py-4 px-4 font-semibold text-slate-300">${kategori}</td>
+                <td class="py-4 px-4 font-semibold text-slate-300">${exp}</td>
+                <td class="py-4 px-4 text-center">
+                    <span class="inline-block px-3 py-1 rounded-full font-black text-[9px] uppercase tracking-wider border ${bClass}">
+                        ${x[7]}
+                    </span>
+                </td>
+            </tr>
+        `;
+    });
+    document.getElementById('memberTableWrapper').innerHTML = h + '</tbody></table>';
+}
+
+function searchMember() {
+    let v = document.getElementById('searchInput').value.toLowerCase();
+    const currentTitle = document.getElementById('memberListTitle').innerText;
+    
+    let baseData = allMembers;
+    if (currentTitle.includes("Status: Pending")) baseData = allMembers.filter(m => m[7] === 'Pending');
+    else if (currentTitle.includes("Status: Expired")) baseData = allMembers.filter(m => m[7] === 'Expired');
+    else if (currentTitle.includes("Status: Aktif")) baseData = allMembers.filter(m => m[7] === 'Aktif');
+
+    renderMemberTable(baseData.filter(r => r[1].toLowerCase().includes(v) || r[0].toLowerCase().includes(v)));
+}
+
+// TOGGLE COLLAPSIBLE FORM TAMBAH PROGRAM
+function toggleAddForm() {
+    const form = document.getElementById('addPricingForm');
+    form.classList.toggle('hidden');
+}
+
+// SUBMIT NEW PRICING DATA TO GAS API (DENGAN DETAIL ERROR)
+async function submitNewPrice() {
+    const category = document.getElementById('newCatName').value.trim();
+    const price = document.getElementById('newCatPrice').value.trim();
+    const desc = document.getElementById('newCatDesc').value.trim();
+
+    if (!category || !price || !desc) {
+        showModal('⚠️', 'Data Kurang Lengkap', 'Harap isi seluruh field Nama Kategori, Harga, dan Deskripsi paket.');
+        return;
+    }
+
+    showLoadingModal('Menambahkan Paket...', 'Sedang menyimpan paket program baru ke server...');
+
+    try {
+        const r = await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ 
+                action: 'addPricing', 
+                category: category, 
+                price: price, 
+                desc: desc 
+            })
+        });
+        const j = await r.json();
+        console.log("Response tambah harga:", j);
+        
+        if (j.status) {
+            showModal('✅', 'Berhasil Disimpan', `Paket latihan <b>${category}</b> berhasil didaftarkan.`);
+            document.getElementById('newCatName').value = '';
+            document.getElementById('newCatPrice').value = '';
+            document.getElementById('newCatDesc').value = '';
+            toggleAddForm();
+            loadPricingData();
+        } else {
+            // MENAMPILKAN DETAIL ERROR DARI APPS SCRIPT JIKA ADA
+            const detailError = j.message ? `<br><br><span class="text-rose-400 font-mono text-xs">Error: ${j.message}</span>` : '';
+            showModal('❌', 'Kesalahan Sistem', 'Gagal mendaftarkan program latihan baru.' + detailError);
+        }
+    } catch(e) {
+        console.error(e);
+        showModal('❌', 'Masalah Koneksi', 'Gagal mengirim paket data ke server. Pastikan koneksi internet stabil atau skrip Apps Script sudah di-deploy dengan benar.');
+    }
+}
+
+// LOAD PRICING DATA
+async function loadPricingData() {
+    try {
+        const r = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'getPricing' }) });
+        const j = await r.json();
+        const tbody = document.getElementById('pricingTableBody');
+        tbody.innerHTML = '';
+        
+        if (j.data && j.data.length > 0) {
+            j.data.forEach((item, index) => {
+                tbody.innerHTML += `
+                    <tr class="hover:bg-white/[0.01] transition text-slate-300">
+                        <td class="py-4 px-4">
+                            <input type="text" class="w-full py-2 px-3 rounded-lg bg-pitch-dark border border-white/15 text-white text-xs sm:text-sm font-bold focus:border-pitch-lime outline-none" id="cat-${index}" value="${item.category}">
+                        </td>
+                        <td class="py-4 px-4">
+                            <input type="number" class="w-full py-2 px-3 rounded-lg bg-pitch-dark border border-white/15 text-white text-xs sm:text-sm font-bold focus:border-pitch-lime outline-none" id="pri-${index}" value="${item.price}">
+                        </td>
+                        <td class="py-4 px-4">
+                            <textarea class="w-full py-2 px-3 rounded-lg bg-pitch-dark border border-white/15 text-white text-xs focus:border-pitch-lime outline-none h-14 resize-y" id="desc-${index}">${item.desc}</textarea>
+                        </td>
+                        <td class="py-4 px-4 text-center space-x-2">
+                            <button class="px-3.5 py-2 bg-pitch-lime text-pitch-dark font-black tracking-wider text-[10px] rounded-lg hover:opacity-90 active:scale-[0.95] transition uppercase shadow-sm" onclick="savePrice(${index})">
+                                Update
+                            </button>
+                            <button class="px-3.5 py-2 bg-pitch-rose text-white font-black tracking-wider text-[10px] rounded-lg hover:opacity-90 active:scale-[0.95] transition uppercase shadow-sm" onclick="deletePrice(${index}, '${item.category}')">
+                                Hapus
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        } else {
+            tbody.innerHTML = '<tr><td colspan="4" class="text-center py-8 text-slate-400 font-bold">Belum ada data pengaturan harga terdaftar.</td></tr>';
+        }
+    } catch (e) {
+        document.getElementById('pricingTableBody').innerHTML = '<tr><td colspan="4" class="text-center py-8 text-pitch-rose font-bold">Gagal memuat setelan harga.</td></tr>';
+    }
+}
+
+// UPDATE PRICING IN DATABASE (DENGAN DETAIL ERROR)
+async function savePrice(index) {
+    const category = document.getElementById(`cat-${index}`).value;
+    const price = document.getElementById(`pri-${index}`).value;
+    const desc = document.getElementById(`desc-${index}`).value;
+    showLoadingModal('Menyimpan Biaya...', 'Mengubah parameter registrasi, mohon tunggu...');
+    try {
+        const r = await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'updatePricing', index: index, category: category, price: price, desc: desc })
+        });
+        const j = await r.json();
+        console.log("Response update harga:", j);
+        if (j.status) {
+            showModal('✅', 'Berhasil Diubah', 'Program biaya <b>' + category + '</b> telah diperbarui di database utama.');
+            loadPricingData();
+        } else {
+            const detailError = j.message ? `<br><br><span class="text-rose-400 font-mono text-xs">Error: ${j.message}</span>` : '';
+            showModal('❌', 'Kesalahan Sistem', 'Gagal memperbarui data.' + detailError);
+        }
+    } catch(e) {
+        console.error(e);
+        showModal('❌', 'Masalah Koneksi', 'Gagal mengirimkan instruksi simpan.');
+    }
+}
+
+// DELETE PRICING FROM DATABASE (DENGAN DETAIL ERROR)
+async function deletePrice(index, categoryName) {
+    // Kustom dialog pengganti confirm() untuk estetika & kompatibilitas iFrame
+    showModal('⚠️', 'Konfirmasi Hapus', `Apakah Anda yakin ingin menghapus paket program <b>"${categoryName}"</b>?<br><br><button class='px-4 py-2 bg-pitch-rose text-white font-bold rounded-lg text-xs tracking-wider uppercase' onclick='executeDelete(${index}, "${categoryName}")'>YAKIN, HAPUS</button>`);
+}
+
+// EKSEKUSI PENGHAPUSAN HARGA SEBENARNYA
+async function executeDelete(index, categoryName) {
+    showLoadingModal('Menghapus Paket...', 'Menghapus paket latihan dari database...');
+    try {
+        const r = await fetch(API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: 'deletePricing', index: index })
+        });
+        const j = await r.json();
+        console.log("Response hapus harga:", j);
+        if (j.status) {
+            showModal('✅', 'Berhasil Dihapus', `Program biaya <b>${categoryName}</b> telah sukses dihapus.`);
+            loadPricingData();
+        } else {
+            const detailError = j.message ? `<br><br><span class="text-rose-400 font-mono text-xs">Error: ${j.message}</span>` : '';
+            showModal('❌', 'Kesalahan Sistem', 'Gagal menghapus program biaya.' + detailError);
+        }
+    } catch(e) {
+        console.error(e);
+        showModal('❌', 'Masalah Koneksi', 'Gagal berkomunikasi dengan server.');
+    }
+}
+
+async function loadRekap() {
+    let bulanVal = document.getElementById('bulan').value;
+    if (!bulanVal) {
+        showModal('⚠️', 'Tanggal Kosong', 'Silakan tentukan bulan latihan terlebih dahulu.');
+        return;
+    }
+    
+    document.getElementById('rekapTable').innerHTML = "<p class='text-center py-6 text-xs text-slate-400 font-bold'>Sedang menjumlah data kehadiran latihan...</p>";
+    
+    let r = await fetch(API_URL, { method: 'POST', body: JSON.stringify({ action: 'rekapAbsensi', bulan: bulanVal }) });
+    let j = await r.json();
+    if (!j.data || !j.data.length) {
+        document.getElementById('rekapTable').innerHTML = '<p class="text-center py-8 text-slate-400 font-bold text-xs">Tidak ada riwayat latihan pada bulan terpilih.</p>';
+        return;
+    }
+    
+    let hadir = {};
+    let h = `
+        <table class="w-full text-left border-collapse min-w-[500px] text-slate-300 text-xs sm:text-sm mb-6">
+            <thead>
+                <tr class="bg-white/5 border-b border-white/10 text-pitch-lime uppercase font-black tracking-wider">
+                    <th class="py-4 px-4">Nama (ID Player)</th>
+                    <th class="py-4 px-4">Tanggal Kehadiran</th>
+                    <th class="py-4 px-4">Jam Scan</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5">
+    `;
+    j.data.forEach(x => {
+        let tanggal = '-';
+        let d = new Date(x[0]);
+        if (!isNaN(d)) tanggal = d.toLocaleDateString('id-ID');
+        
+        let jamRaw = x[3] || '-';
+        let jamTampil = jamRaw;
+        
+        try {
+            if (typeof jamRaw === 'string') {
+                if (jamRaw.includes('T') || jamRaw.includes('Z')) {
+                    let dj = new Date(jamRaw);
+                    if(!isNaN(dj.getTime())){
+                        jamTampil = dj.toLocaleTimeString('id-ID', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                    }
+                } else if (jamRaw.includes(':') && jamRaw.length > 8) {
+                    let match = jamRaw.match(/\d{2}:\d{2}:\d{2}/);
+                    if (match) jamTampil = match[0];
+                }
+            } else if (jamRaw) {
+                let dj = new Date(jamRaw);
+                if(!isNaN(dj.getTime())){
+                    jamTampil = dj.toLocaleTimeString('id-ID', { hour12: false, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                }
+            }
+        } catch(e) {
+            jamTampil = jamRaw;
+        }
+        
+        let nama = x[2] || 'Tanpa Nama';
+        hadir[nama] = (hadir[nama] || 0) + 1;
+        h += `
+            <tr class="hover:bg-white/[0.01] transition">
+                <td class="py-4 px-4 font-bold text-white">${nama} (${x[1]})</td>
+                <td class="py-4 px-4 font-semibold">${tanggal}</td>
+                <td class="py-4 px-4 font-mono font-bold text-slate-400">${jamTampil}</td>
+            </tr>
+        `;
+    });
+    
+    h += `
+        </tbody></table>
+        <h3 class="text-sm font-black text-pitch-lime uppercase tracking-widest mb-4">Total Kumulatif Kehadiran</h3>
+        <table class="w-full text-left border-collapse min-w-[300px] text-slate-300 text-xs sm:text-sm">
+            <thead>
+                <tr class="bg-white/5 border-b border-white/10 text-pitch-lime uppercase font-black tracking-wider">
+                    <th class="py-4 px-4">Nama Player</th>
+                    <th class="py-4 px-4">Frekuensi Latihan</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5">
+    `;
+    for(let n in hadir) {
+        h += `
+            <tr class="hover:bg-white/[0.01] transition">
+                <td class="py-4 px-4 font-bold text-white">${n}</td>
+                <td class="py-4 px-4 text-pitch-emerald font-black">${hadir[n]} kali hadir</td>
+            </tr>
+        `;
+    }
+    document.getElementById('rekapTable').innerHTML = h + '</tbody></table>';
+}
+
+function exportExcel() {
+    let csv = [];
+    const rows = document.querySelectorAll('#rekapTable tr');
+    if (rows.length === 0) {
+        showModal('⚠️', 'Ekspor Gagal', "Silakan klik 'Tampilkan' rekap bulan terlebih dahulu sebelum mengekspor.");
+        return;
+    }
+    
+    rows.forEach(r => { 
+        csv.push([...r.children].map(td => td.innerText).join(',')); 
+    });
+    
+    let a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv.join('\n')], { type: 'text/csv' }));
+    a.download = 'rekap_absensi_latihan_unesafc_academy.csv';
+    a.click();
+}
+
+// Inisialisasi Dashboard Utama
+loadStats();
+startAutoUpdate();
+showTab('scan');
+</script>
+</body>
+</html>
